@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panadería La Desesperanza - Catálogo</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: #f8f9fa;
+        }
+
+        .navbar-brand {
+            font-size: 1.3rem;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+        }
+        .catalogo-scroll {
+            display: flex;
+            overflow-x: auto;
+            overflow-y: hidden;
+            gap: 20px;
+            padding: 20px 0;
+            scroll-behavior: smooth;
+        }
+
+        .catalogo-scroll::-webkit-scrollbar {
+            height: 10px;
+        }
+
+        .catalogo-scroll::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .catalogo-scroll::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+
+        .catalogo-scroll::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        .tarjeta-producto {
+            min-width: 280px;
+            max-width: 280px;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .tarjeta-producto:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+        }
+
+        .etiqueta-temporada {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #dc3545;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            z-index: 10;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .imagen-container {
+            width: 100%;
+            height: 200px;
+            overflow: hidden;
+            background: #f0f0f0;
+        }
+
+        .imagen-producto {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .tarjeta-producto:hover .imagen-producto {
+            transform: scale(1.1);
+        }
+
+        .info-producto {
+            padding: 15px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-producto h3 {
+            font-size: 1rem;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+            line-height: 1.3;
+        }
+
+        .descripcion {
+            font-size: 0.8rem;
+            color: #666;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            flex: 1;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .precio {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #28a745;
+            margin-bottom: 10px;
+        }
+
+        .btn-agregar-carrito {
+            width: 100%;
+            background: #212529;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .btn-agregar-carrito:hover {
+            background: #000000;
+        }
+
+        .scroll-indicator {
+            text-align: center;
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+
+        .scroll-indicator i {
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateX(0);
+            }
+            40% {
+                transform: translateX(-10px);
+            }
+            60% {
+                transform: translateX(-5px);
+            }
+        }
+    </style>
+</head>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+<script src="assets/js/api.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        const linkLogin = document.getElementById('link-login');
+        const linkLogout = document.getElementById('link-logout');
+        let usuarioAutenticado = false;
+        
+        // Verificar sesión
+        try {
+            const data = await apiFetch('/api/auth/verificar', 'GET');
+            
+            if (data.success && data.autenticado && data.tipo === 'cliente') {
+                linkLogin.style.display = 'none';
+                linkLogout.style.display = 'block';
+                usuarioAutenticado = true;
+                
+                // Cargar contador del carrito
+                await cargarContadorCarrito();
+            } else {
+                linkLogin.style.display = 'block';
+                linkLogout.style.display = 'none';
+            }
+        } catch (error) {
+            linkLogin.style.display = 'block';
+            linkLogout.style.display = 'none';
+        }
+        
+        // Logout
+        const logoutLink = document.getElementById('logout-link');
+        if (logoutLink) {
+            logoutLink.addEventListener('click', async (e) => {
+                e.preventDefault();
+                try {
+                    await apiFetch('/api/auth/logout', 'POST');
+                    window.location.href = 'index.html';
+                } catch (error) {
+                    console.error('Error:', error);
+                    window.location.href = 'index.html';
+                }
+            });
+        }
+
+
+        // Agregar al carrito
+        document.querySelectorAll('.btn-agregar-carrito').forEach(btn => {
+            btn.addEventListener('click', async function() {
+                // Verificar sesión antes de agregar
+                if (!usuarioAutenticado) {
+                    alert('Debes iniciar sesión para agregar productos al carrito');
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                const nombre = this.dataset.nombre;
+                const precio = parseFloat(this.dataset.precio);
+                const idProducto = parseInt(this.dataset.id);
+                
+                if (!idProducto) {
+                    alert('Error: No se pudo identificar el producto');
+                    return;
+                }
+
+                try {
+                    const response = await apiFetch('/api/pedidos/carrito', 'POST', {
+                        id_producto: idProducto,
+                        cantidad: 1
+                    });
+
+                    if (response.success) {
+                        alert(`${nombre} añadido al carrito`);
+                        actualizarContador(response.data);
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert(error.message || 'Error al agregar al carrito');
+                }
+            });
+        });
+    });
+
+    async function cargarContadorCarrito() {
+        try {
+            const response = await apiFetch('/api/pedidos/carrito', 'GET');
+            if (response.success) {
+                actualizarContador(response.data);
+            }
+        } catch (error) {
+            console.error('Error al cargar carrito:', error);
+        }
+    }
+
+    function actualizarContador(carrito) {
+        const contador = document.getElementById('carritoCount');
+        const total = carrito.reduce((sum, item) => sum + item.cantidad, 0);
+        contador.textContent = total;
+        contador.style.display = total > 0 ? 'inline-block' : 'none';
+    }
+</script>
+<body>
+
+     <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="index.html">
+                🥖 Panadería La Desesperanza
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">
+                            <i class="fas fa-home"></i> Inicio
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html#productos">
+                            <i class="fas fa-bread-slice"></i> Productos
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="#contacto">
+                            <i class="fas fa-envelope"></i> Contacto
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item" id="link-login">
+        <a class="nav-link" href="login.html">Iniciar Sesión</a>
+    </li>
+    <li class="nav-item" id="link-logout" style="display: none;">
+        <a class="nav-link" href="#" id="logout-link">Cerrar Sesión</a>
+    </li>
+                    
+                    <li class="nav-item" id="logoutItem" style="display: none;">
+                        <a class="nav-link text-danger" href="index.html" id="logoutLink">
+                            <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                        </a>
+                    </li>
+
+                    <li class="nav-item ms-2">
+                        <a href="/cliente/Carrito/carrito.html" class="btn btn-dark position-relative">
+                            <i class="fas fa-shopping-cart"></i> Carrito
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" 
+                                  id="carritoCount" style="display: none;">0</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+
+
+    <header class="py-5 text-center">
+        <div class="container">
+            <h1 class="display-4 fw-bold mb-2">Bienvenido a Panadería la Desesperanza</h1>
+            <p class="lead">Pan recién horneado todos los días</p>
+        </div>
+    </header>
+
+<br><br>
+
+    <section class="container mb-5">
+        <h2 class="h3 fw-bold mb-3">Nuestros Productos</h2>
+        
+        <div class="catalogo-scroll">
+        
+            <div class="tarjeta-producto" data-categoria="dulces">
+                <div class="imagen-container">
+                    <img src="/assets/images/panes/concha de vainilla.jpg" alt="Concha de Vainilla" class="imagen-producto">
+                </div>
+                <div class="info-producto">
+                    <h3>Concha Vainilla</h3>
+                    <p class="descripcion">Pan dulce mexicano. Suave y esponjoso, cubierto con azúcar y vainilla.</p>
+                    <p class="precio">$15.00</p>
+                    <button class="btn-agregar-carrito" data-id="1" data-nombre="Concha Vainilla" data-precio="15.00">🛒 Añadir</button>
+                </div>
+            </div>
+
+            <div class="tarjeta-producto" data-categoria="dulces">
+                <div class="imagen-container">
+                    <img src="/assets/images/panes/croissaint.jpg" alt="Croissaint" class="imagen-producto">
+                </div>
+                <div class="info-producto">
+                    <h3>Cuernito </h3>
+                    <p class="descripcion">Versión clásica y hojaldrada. Perfecto para el desayuno.</p>
+                    <p class="precio">$22.00</p>
+                    <button class="btn-agregar-carrito" data-id="2" data-nombre="Cuernito" data-precio="18.00">🛒 Añadir</button>
+                </div>
+            </div>
+
+            <div class="tarjeta-producto" data-categoria="dulces">
+                <div class="imagen-container">
+                    <img src="/assets/images/panes/elote.webp" alt="Pan de Elote" class="imagen-producto">
+                </div>
+                <div class="info-producto">
+                    <h3>Pan de Elote</h3>
+                    <p class="descripcion">Bizcocho húmedo elaborado con granos de elote frescos.</p>
+                    <p class="precio">$28.00</p>
+                    <button class="btn-agregar-carrito" data-id="3" data-nombre="PanElote" data-precio="16.00">🛒 Añadir</button>
+                </div>
+            </div>
+
+            <div class="tarjeta-producto" data-categoria="salados">
+                <div class="imagen-container">
+                    <img src="/assets/images/panes/bolillo.jpg" alt="Bolillo Tradicional" class="imagen-producto">
+                </div>
+                <div class="info-producto">
+                    <h3>Bolillo Tradicional</h3>
+                    <p class="descripcion">Crujiente por fuera y suave por dentro. Perfecto para tortas.</p>
+                    <p class="precio">$8.00</p>
+                    <button class="btn-agregar-carrito" data-id="4" data-nombre="Bolillo" data-precio="4.00">🛒 Añadir</button>
+                </div>
+            </div>
+
+            <div class="tarjeta-producto" data-categoria="dulces">
+                <div class="imagen-container">
+                    <img src="/assets/images/panes/dona glaseada.jpeg" alt="Dona Glaseada" class="imagen-producto">
+                </div>
+                <div class="info-producto">
+                    <h3>Dona Glaseada</h3>
+                    <p class="descripcion">Esponjosa dona cubierta con glaseado de azúcar y mantequilla.</p>
+                    <p class="precio">$18.00</p>
+                    <button class="btn-agregar-carrito" data-id="5" data-nombre="Dona Glaseada" data-precio="13.00">🛒 Añadir</button>
+                </div>
+            </div>
+
+            <div class="tarjeta-producto" data-categoria="dulces">
+                <span class="etiqueta-temporada">¡TEMPORADA!</span>
+                <div class="imagen-container">
+                    <img src="/assets/images/panes/pan de muerto.jpg" alt="Pan de Muerto Clásico" class="imagen-producto">
+                </div>
+                <div class="info-producto">
+                    <h3>Pan de Muerto Clásico</h3>
+                    <p class="descripcion">Sabor a azahar y naranja, cubierto con mantequilla y azúcar.</p>
+                    <p class="precio">$35.00</p>
+                    <button class="btn-agregar-carrito" data-id="6" data-nombre="PanMuerto" data-precio="15.00">🛒 Añadir</button>
+                </div>
+            </div>
+            
+            <div class="tarjeta-producto" data-categoria="dulces">
+                <span class="etiqueta-temporada">¡FAVORITO!</span>
+                <div class="imagen-container">
+                    <img src="/assets/images/panes/pan de muertoconejito.jpg" alt="Pan de Muerto Relleno" class="imagen-producto">
+                </div>
+                <div class="info-producto">
+                    <h3>Pan de Muerto Conejito</h3>
+                    <p class="descripcion">Relleno de chocolate Conejito Turin.</p>
+                    <p class="precio">$55.00</p>
+                    <button class="btn-agregar-carrito" data-id="7" data-nombre="PanMConej" data-precio="18.00">🛒 Añadir</button>
+                </div>
+            </div>
+
+            <div class="tarjeta-producto" data-categoria="dulces">
+                <span class="etiqueta-temporada">Especial</span>
+                <div class="imagen-container">
+                    <img src="/assets/images/panes/hojaldra.jpg" alt="Hojaldra Dulce" class="imagen-producto">
+                </div>
+                <div class="info-producto">
+                    <h3>Hojaldra Dulce</h3>
+                    <p class="descripcion">Pan de Puebla clasico y hojaldrado </p>
+                    <p class="precio">$38.00</p>
+                    <button class="btn-agregar-carrito" data-id="8" data-nombre="Hojaldra" data-precio="10.00">🛒 Añadir</button>
+                </div>
+            </div>
+
+            <div class="tarjeta-producto" data-categoria="fusion">
+                <span class="etiqueta-temporada">Fusión</span>
+                <div class="imagen-container">
+                    <img src="/assets/images/panes/conchamuerto.jpg" alt="Concha de Muerto" class="imagen-producto">
+                </div>
+                <div class="info-producto">
+                    <h3>Concha de Muerto</h3>
+                    <p class="descripcion">Base de concha con sabor de Pan de Muerto tradicional.</p>
+                    <p class="precio">$20.00</p>
+                    <button class="btn-agregar-carrito" data-id="9" data-nombre="ConchaM" data-precio="17.00">🛒 Añadir</button>
+                </div>
+            </div>
+            <div class="tarjeta-producto" data-categoria="dulces">
+                <span class="etiqueta-temporada">¡TEMPORADA!</span>
+                <div class="imagen-container">
+                    <img src="/assets/images/panes/ataud.jpg" alt="Pan ataud" class="imagen-producto">
+                </div>
+                <div class="info-producto">
+                    <h3>Pan de ataud</h3>
+                    <p class="descripcion">Pan hojaldrado estilo "pan de muerto" en forma de ataud con azucar.</p>
+                    <p class="precio">$95.00</p>
+                    <button class="btn-agregar-carrito" data-id="10" data-nombre="PanAtaud" data-precio="18.00">🛒 Añadir</button>
+                </div>
+            </div>
+            <div class="tarjeta-producto" data-categoria="dulces">
+                <span class="etiqueta-temporada">¡TEMPORADA!</span>
+                <div class="imagen-container">
+                    <img src="/assets/images/panes/donatel.jpg" alt="Dona de chocolate decorada con glaseado en forma de telaraña" class="imagen-producto">
+                </div>
+                <div class="info-producto">
+                    <h3>Dona Telaraña</h3>
+                    <p class="descripcion">Dona de chocolate decorada con glaseado en forma de telaraña</p>
+                    <p class="precio">$15.00</p>
+                    <button class="btn-agregar-carrito" data-id="11" data-nombre="DonaT" data-precio="17.00">🛒 Añadir</button>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="scroll-indicator">
+            <i class="fas fa-arrows-alt-h"></i> Desliza para ver más productos
+        </div>
+    </section>
+
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container text-center">
+            <h5 class="mb-2">Panadería La Desesperanza</h5>
+            <p class="mb-1 small">Calle Batiz 123, Ciudad de México</p>
+            <p class="mb-0 small">Tel: (55) 1234-5678 | info@ladesesperanza.mx</p>
+        </div>
+    </footer>
+
+    <div class="toast-container position-fixed top-0 end-0 p-3" id="toastContainer"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+<script src="assets/js/api.js"></script>
+<script>
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        const linkLogin = document.getElementById('link-login');
+        const linkLogout = document.getElementById('link-logout');
+        
+        try {
+            const data = await apiFetch('/api/auth/verificar', 'GET');
+            
+            if (data.success && data.autenticado && data.tipo === 'cliente') {
+                linkLogin.style.display = 'none';
+                linkLogout.style.display = 'block';
+
+                await cargarContadorCarrito();
+            } else {
+                linkLogin.style.display = 'block';
+                linkLogout.style.display = 'none';
+            }
+        } catch (error) {
+            linkLogin.style.display = 'block';
+            linkLogout.style.display = 'none';
+        }
+        
+
+        const logoutLink = document.getElementById('logout-link');
+        if (logoutLink) {
+            logoutLink.addEventListener('click', async (e) => {
+                e.preventDefault();
+                
+                try {
+                    await apiFetch('/api/auth/logout', 'POST');
+                    window.location.href = 'index.html';
+                } catch (error) {
+                    console.error('Error al cerrar sesión:', error);
+                    window.location.href = 'index.html';
+                }
+            });
+        }
+    });
+
+
+    async function cargarContadorCarrito() {
+        try {
+            const response = await apiFetch('/api/pedidos/carrito', 'GET');
+            if (response.success) {
+                actualizarContador(response.data);
+            }
+        } catch (error) {
+            console.error('Error al cargar carrito:', error);
+        }
+    }
+
+    function actualizarContador(carrito) {
+        const contador = document.getElementById('carritoCount');
+        const total = carrito.reduce((sum, item) => sum + item.cantidad, 0);
+        contador.textContent = total;
+        contador.style.display = total > 0 ? 'inline-block' : 'none';
+    }
+
+    document.querySelectorAll('.btn-agregar-carrito').forEach(btn => {
+        btn.addEventListener('click', async function() {
+            const nombre = this.dataset.nombre;
+            const precio = parseFloat(this.dataset.precio);
+  
+            try {
+                const verificacion = await apiFetch('/api/auth/verificar', 'GET');
+                
+                if (!verificacion.autenticado || verificacion.tipo !== 'cliente') {
+                    alert('Debes iniciar sesión para agregar productos al carrito');
+                    window.location.href = 'login.html';
+                    return;
+                }
+            } catch (error) {
+                alert('Debes iniciar sesión para agregar productos al carrito');
+                window.location.href = 'login.html';
+                return;
+            }
+
+ 
+            const idProducto = parseInt(this.dataset.id);
+            
+            if (!idProducto) {
+                alert('Error: No se pudo identificar el producto');
+                return;
+            }
+
+            try {
+
+                const response = await apiFetch('/api/pedidos/carrito', 'POST', {
+                    id_producto: idProducto,
+                    cantidad: 1
+                });
+
+                if (response.success) {
+                    alert(`${nombre} añadido al carrito`);
+                    actualizarContador(response.data);
+                } else {
+                    alert(response.message || 'Error al agregar al carrito');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert(error.message || 'Error al agregar al carrito');
+            }
+        });
+    });
+</script>
+
+</body>
+</html>

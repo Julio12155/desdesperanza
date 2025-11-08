@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carrito - Panadería La Desesperanza</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: #f8f9fa;
+        }
+
+        .navbar-brand {
+            font-size: 1.3rem;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .carrito-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .carrito-vacio {
+            text-align: center;
+            padding: 60px 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .carrito-vacio i {
+            font-size: 5rem;
+            color: #ccc;
+            margin-bottom: 20px;
+        }
+
+        .item-carrito {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            transition: transform 0.2s ease;
+        }
+
+        .item-carrito:hover {
+            transform: translateX(5px);
+        }
+
+        .item-imagen {
+            width: 100px;
+            height: 100px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 2px solid #f0f0f0;
+        }
+
+        .item-info {
+            flex: 1;
+        }
+
+        .item-nombre {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .item-precio {
+            font-size: 1.1rem;
+            color: #28a745;
+            font-weight: 600;
+        }
+
+        .item-controles {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-cantidad {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            border: 2px solid #007bff;
+            background: white;
+            color: #007bff;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-cantidad:hover {
+            background: #007bff;
+            color: white;
+        }
+
+        .cantidad-display {
+            font-size: 1.2rem;
+            font-weight: bold;
+            min-width: 30px;
+            text-align: center;
+        }
+
+        .btn-eliminar {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .btn-eliminar:hover {
+            background: #c82333;
+        }
+
+        .resumen-compra {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 20px;
+        }
+
+        .resumen-compra h3 {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .resumen-linea {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 1rem;
+        }
+
+        .resumen-total {
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.5rem;
+            font-weight: bold;
+            padding-top: 15px;
+            border-top: 2px solid #f0f0f0;
+            margin-top: 15px;
+        }
+
+        .btn-finalizar {
+            width: 100%;
+            padding: 15px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background 0.3s ease;
+        }
+
+        .btn-finalizar:hover {
+            background: #218838;
+        }
+
+        .btn-seguir-comprando {
+            width: 100%;
+            padding: 12px;
+            background: white;
+            color: #007bff;
+            border: 2px solid #007bff;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-seguir-comprando:hover {
+            background: #007bff;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .item-carrito {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- NAVBAR -->
+     <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="index.html">
+                🥖 Panadería La Desesperanza
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/../index.html">
+                            <i class="fas fa-home"></i> Inicio
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="/../index.html">
+                            <i class="fas fa-bread-slice"></i> Productos
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="#contacto">
+                            <i class="fas fa-envelope"></i> Contacto
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item" id="link-login">
+        <a class="nav-link" href="/../login.html">Iniciar Sesión</a>
+    </li>
+    <li class="nav-item" id="link-logout" style="display: none;">
+        <a class="nav-link" href="#" id="logout-link">Cerrar Sesión</a>
+    </li>
+                    
+                    <li class="nav-item" id="logoutItem" style="display: none;">
+                        <a class="nav-link text-danger" href="#" id="logoutLink">
+                            <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                        </a>
+                    </li>
+                    
+                    <!-- Carrito -->
+                    <li class="nav-item ms-2">
+                        <a href="carrito.html" class="btn btn-dark position-relative">
+                            <i class="fas fa-shopping-cart"></i> Carrito
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" 
+                                  id="carritoCount" style="display: none;">0</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+
+    <header class="py-5 text-center">
+        <div class="container">
+            <h1 class="display-4 fw-bold mb-2"><i class="fas fa-shopping-cart"></i> Mi Carrito</h1>
+            <p class="lead">Revisa tus productos antes de finalizar</p>
+        </div>
+    </header>
+
+    <div class="carrito-container">
+        <div class="row">
+            <!-- Columna de Items -->
+            <div class="col-lg-8 mb-4">
+                <div id="items-carrito">
+                    <!-- Los items se cargan dinámicamente -->
+                </div>
+            </div>
+
+            <!-- Columna de Resumen -->
+            <div class="col-lg-4">
+                <div class="resumen-compra">
+                    <h3><i class="fas fa-file-invoice"></i> Resumen de Compra</h3>
+                    
+                    <div class="resumen-linea">
+                        <span>Subtotal:</span>
+                        <span id="subtotal">$0.00</span>
+                    </div>
+                    
+                    <div class="resumen-linea">
+                        <span>Productos:</span>
+                        <span id="total-productos">0</span>
+                    </div>
+
+                    <div class="resumen-total">
+                        <span>Total:</span>
+                        <span id="total">$0.00</span>
+                    </div>
+
+                    <button class="btn-finalizar" id="btnFinalizarCompra">
+                        <i class="fas fa-check-circle"></i> Finalizar Compra
+                    </button>
+
+                    <button class="btn-seguir-comprando" onclick="window.location.href='index.html'">
+                        <i class="fas fa-arrow-left"></i> Seguir Comprando
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container text-center">
+            <h5 class="mb-2">Panadería La Desesperanza</h5>
+            <p class="mb-1 small">Calle Batiz 123, Ciudad de México</p>
+            <p class="mb-0 small">Tel: (55) 1234-5678 | info@ladesesperanza.mx</p>
+        </div>
+    </footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+<script src="../../assets/js/api.js"></script>
+<script>
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        const linkLogin = document.getElementById('link-login');
+        const linkLogout = document.getElementById('link-logout');
+        const linkCarrito = document.getElementById('link-carrito');
+        
+        try {
+            const data = await apiFetch('/api/auth/verificar', 'GET');
+            
+            if (data.success && data.autenticado && data.tipo === 'cliente') {
+                linkLogin.style.display = 'none';
+                linkLogout.style.display = 'block';
+                if (linkCarrito) linkCarrito.style.display = 'block';
+
+                cargarCarrito();
+            } else {
+                alert('Debes iniciar sesión para ver el carrito');
+                window.location.href = '/login.html';
+            }
+        } catch (error) {
+            alert('Debes iniciar sesión para ver el carrito');
+            window.location.href = '/login.html';
+        }
+ 
+        const logoutLink = document.getElementById('logout-link');
+        if (logoutLink) {
+            logoutLink.addEventListener('click', async (e) => {
+                e.preventDefault();
+                
+                try {
+                    await apiFetch('/api/auth/logout', 'POST');
+                    window.location.href = '/index.html';
+                } catch (error) {
+                    console.error('Error al cerrar sesión:', error);
+                    window.location.href = '/index.html';
+                }
+            });
+        }
+    });
+
+    async function cargarCarrito() {
+        try {
+            const response = await apiFetch('/api/pedidos/carrito', 'GET');
+
+            if (response.success) {
+                mostrarCarrito(response.data);
+                actualizarResumen(response.data);
+                actualizarContador(response.data);
+            }
+        } catch (error) {
+            console.error('Error al cargar carrito:', error);
+            mostrarCarritoVacio();
+        }
+    }
+
+    function mostrarCarrito(carrito) {
+        const container = document.getElementById('items-carrito');
+
+        if (!carrito || carrito.length === 0) {
+            mostrarCarritoVacio();
+            return;
+        }
+
+        container.innerHTML = carrito.map(item => `
+            <div class="item-carrito" data-id="${item.id_producto}">
+                <img src="${item.imagen || '/assets/images/placeholder.jpg'}" alt="${item.nombre}" class="item-imagen">
+                
+                <div class="item-info">
+                    <div class="item-nombre">${item.nombre}</div>
+                    <div class="item-precio">$${parseFloat(item.precio_unitario).toFixed(2)}</div>
+                </div>
+
+                <div class="item-controles">
+                    <button class="btn-cantidad" onclick="cambiarCantidad(${item.id_producto}, -1)">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                    <span class="cantidad-display">${item.cantidad}</span>
+                    <button class="btn-cantidad" onclick="cambiarCantidad(${item.id_producto}, 1)">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+
+                <div>
+                    <div class="item-precio">$${(item.precio_unitario * item.cantidad).toFixed(2)}</div>
+                    <button class="btn-eliminar" onclick="eliminarItem(${item.id_producto})">
+                        <i class="fas fa-trash"></i> Eliminar
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function mostrarCarritoVacio() {
+        const container = document.getElementById('items-carrito');
+        container.innerHTML = `
+            <div class="carrito-vacio">
+                <i class="fas fa-shopping-cart"></i>
+                <h3>Tu carrito está vacío</h3>
+                <p class="text-muted">Agrega productos para comenzar tu compra</p>
+                <button class="btn btn-primary mt-3" onclick="window.location.href='/index.html'">
+                    Ver Productos
+                </button>
+            </div>
+        `;
+        document.getElementById('subtotal').textContent = '$0.00';
+        document.getElementById('total').textContent = '$0.00';
+        document.getElementById('total-productos').textContent = '0';
+    }
+
+    function actualizarResumen(carrito) {
+        const subtotal = carrito.reduce((sum, item) => sum + (item.precio_unitario * item.cantidad), 0);
+        const totalProductos = carrito.reduce((sum, item) => sum + item.cantidad, 0);
+
+        document.getElementById('subtotal').textContent = `$${subtotal.toFixed(2)}`;
+        document.getElementById('total').textContent = `$${subtotal.toFixed(2)}`;
+        document.getElementById('total-productos').textContent = totalProductos;
+    }
+
+    function actualizarContador(carrito) {
+        const total = carrito.reduce((sum, item) => sum + item.cantidad, 0);
+        const contador = document.getElementById('carritoCount');
+        if (contador) {
+            contador.textContent = total;
+            contador.style.display = total > 0 ? 'inline-block' : 'none';
+        }
+    }
+
+    async function cambiarCantidad(id_producto, cambio) {
+        try {
+
+            const response = await apiFetch('/api/pedidos/carrito', 'GET');
+            const item = response.data.find(i => i.id_producto === id_producto);
+            
+            if (item && item.cantidad + cambio <= 0) {
+                await eliminarItem(id_producto);
+                return;
+            }
+
+            if (cambio > 0) {
+                await apiFetch('/api/pedidos/carrito', 'POST', { 
+                    id_producto, 
+                    cantidad: cambio 
+                });
+            } else {
+
+                await apiFetch('/api/pedidos/carrito', 'POST', { 
+                    id_producto, 
+                    cantidad: cambio 
+                });
+            }
+            
+            cargarCarrito();
+        } catch (error) {
+            console.error('Error:', error);
+            alert(error.message || 'Error al actualizar cantidad');
+        }
+    }
+
+    async function eliminarItem(id_producto) {
+        if (!confirm('¿Eliminar este producto del carrito?')) return;
+
+        try {
+            const response = await apiFetch(`/api/pedidos/carrito/${id_producto}`, 'DELETE');
+            
+            if (response.success) {
+                cargarCarrito();
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error al eliminar el producto');
+        }
+    }
+
+    document.getElementById('btnFinalizarCompra').addEventListener('click', async () => {
+        try {
+            const response = await apiFetch('/api/pedidos/checkout', 'POST');
+
+            if (response.success) {
+                alert(`¡Pedido #${response.id_pedido} creado exitosamente!\nTotal: $${response.total.toFixed(2)}`);
+                window.location.href = '/cliente/mis-pedidos/mis-pedidos.html';
+            } else {
+                alert('Error: ' + response.message);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert(error.message || 'Error al procesar el pedido');
+        }
+    });
+</script>
+</body>
+</html>
